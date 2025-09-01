@@ -28,7 +28,6 @@ find_package(Threads REQUIRED)
 add_library(anantasound_core
     src/anantasound_core.cpp
     src/quantum_feedback_system.cpp
-    src/consciousness_hybrid.cpp
     src/consciousness_integration.cpp
     src/mechanical_devices.cpp
     src/qrd_integration.cpp
@@ -38,7 +37,7 @@ add_library(anantasound_core
 set_target_properties(anantasound_core PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}
-    PUBLIC_HEADER "src/anantasound_core.hpp;src/quantum_feedback_system.hpp;src/mechanical_devices.hpp"
+    PUBLIC_HEADER "src/anantasound_core.hpp;src/quantum_feedback_system.hpp;src/mechanical_devices.hpp;src/consciousness_integration.hpp;src/qrd_integration.hpp"
 )
 
 # Подключение зависимостей
@@ -60,6 +59,20 @@ target_compile_definitions(anantasound_core
         $<$<BOOL:${ENABLE_QUANTUM_FEEDBACK}>:ENABLE_QUANTUM_FEEDBACK>
         $<$<BOOL:${ENABLE_MECHANICAL_DEVICES}>:ENABLE_MECHANICAL_DEVICES>
         $<$<BOOL:${ENABLE_QRD_INTEGRATION}>:ENABLE_QRD_INTEGRATION>
+)
+
+# Конфигурационный файл CMake
+include(CMakePackageConfigHelpers)
+configure_package_config_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/anantasoundConfig.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/anantasoundConfig.cmake"
+    INSTALL_DESTINATION lib/cmake/anantasound
+)
+
+write_basic_package_version_file(
+    anantasoundConfigVersion.cmake
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion
 )
 
 # Демонстрационные приложения
@@ -119,22 +132,19 @@ install(EXPORT anantasoundTargets
     DESTINATION lib/cmake/anantasound
 )
 
-# Конфигурационный файл
-include(CMakePackageConfigHelpers)
-write_basic_package_version_file(
-    anantasoundConfigVersion.cmake
-    VERSION ${PROJECT_VERSION}
-    COMPATIBILITY SameMajorVersion
-)
-
-configure_package_config_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/anantasoundConfig.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/anantasoundConfig.cmake"
-    INSTALL_DESTINATION lib/cmake/anantasound
-)
-
+# Конфигурационные файлы
 install(FILES
     "${CMAKE_CURRENT_BINARY_DIR}/anantasoundConfig.cmake"
     "${CMAKE_CURRENT_BINARY_DIR}/anantasoundConfigVersion.cmake"
     DESTINATION lib/cmake/anantasound
 )
+
+# Создание директории cmake если её нет
+file(MAKE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
+# Создание базового конфигурационного файла
+file(WRITE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/anantasoundConfig.cmake.in" 
+"@PACKAGE_INIT@
+include(\"\${CMAKE_CURRENT_LIST_DIR}/anantasoundTargets.cmake\")
+check_required_components(anantasound)
+")
