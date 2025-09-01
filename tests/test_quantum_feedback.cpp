@@ -1,29 +1,80 @@
+#include "quantum_feedback_system.hpp"
 #include <iostream>
 #include <cassert>
-#include "../src/quantum_feedback_system.hpp"
+#include <cmath>
 
-int test_quantum_feedback() {
-    std::cout << "Testing quantum feedback system..." << std::endl;
+using namespace AnantaSound;
+
+void test_quantum_feedback_system() {
+    std::cout << "Testing QuantumFeedbackSystem..." << std::endl;
     
-    try {
-        // Basic functionality test
-        std::cout << "✓ quantum feedback tests passed" << std::endl;
-        return 0;
-    } catch (const std::exception& e) {
-        std::cerr << "✗ quantum feedback test failed: " << e.what() << std::endl;
-        return 1;
+    QuantumFeedbackSystem feedback(1.5, 0.7);
+    
+    // Test getters
+    assert(std::abs(feedback.getFeedbackGain() - 1.5) < 1e-6);
+    assert(std::abs(feedback.getQuantumThreshold() - 0.7) < 1e-6);
+    
+    // Test setters
+    feedback.setFeedbackGain(2.0);
+    feedback.setQuantumThreshold(0.8);
+    
+    assert(std::abs(feedback.getFeedbackGain() - 2.0) < 1e-6);
+    assert(std::abs(feedback.getQuantumThreshold() - 0.8) < 1e-6);
+    
+    std::cout << "✓ QuantumFeedbackSystem test passed" << std::endl;
+}
+
+void test_quantum_resonance_detector() {
+    std::cout << "Testing QuantumResonanceDetector..." << std::endl;
+    
+    QuantumResonanceDetector detector(0.7);
+    
+    QuantumSoundField field;
+    field.amplitude = std::complex<double>(0.8, 0.0);
+    field.frequency = 432.0;
+    field.phase = 0.0;
+    field.quantum_state = QuantumSoundState::COHERENT;
+    
+    bool detected = detector.detectResonance(field);
+    assert(detected);
+    
+    std::cout << "✓ QuantumResonanceDetector test passed" << std::endl;
+}
+
+void test_quantum_phase_synchronizer() {
+    std::cout << "Testing QuantumPhaseSynchronizer..." << std::endl;
+    
+    QuantumPhaseSynchronizer sync(M_PI / 8.0);
+    
+    std::vector<QuantumSoundField> fields;
+    for (int i = 0; i < 3; ++i) {
+        QuantumSoundField field;
+        field.amplitude = std::complex<double>(1.0, 0.0);
+        field.frequency = 432.0;
+        field.phase = i * M_PI / 6.0;
+        field.quantum_state = QuantumSoundState::COHERENT;
+        fields.push_back(field);
     }
+    
+    auto synchronized = sync.synchronizePhases(fields);
+    assert(synchronized.size() == fields.size());
+    
+    std::cout << "✓ QuantumPhaseSynchronizer test passed" << std::endl;
 }
 
 int main() {
-    int result = 0;
-    result += test_quantum_feedback();
+    std::cout << "Running Quantum Feedback Tests..." << std::endl;
     
-    if (result == 0) {
-        std::cout << "All tests passed!" << std::endl;
-    } else {
-        std::cout << result << " test(s) failed!" << std::endl;
+    try {
+        test_quantum_feedback_system();
+        test_quantum_resonance_detector();
+        test_quantum_phase_synchronizer();
+        
+        std::cout << "✓ All quantum feedback tests passed!" << std::endl;
+        return 0;
+        
+    } catch (const std::exception& e) {
+        std::cerr << "Test failed: " << e.what() << std::endl;
+        return 1;
     }
-    
-    return result;
 }
