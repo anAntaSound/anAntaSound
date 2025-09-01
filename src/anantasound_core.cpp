@@ -8,7 +8,7 @@ namespace AnantaSound {
 
 // InterferenceField implementation
 InterferenceField::InterferenceField(InterferenceFieldType type, SphericalCoord center, double radius)
-    : type_(type), center_position_(center), field_radius_(radius) {
+    : type_(type), center_(center), field_radius_(radius) {
 }
 
 void InterferenceField::addSourceField(const QuantumSoundField& field) {
@@ -53,6 +53,9 @@ std::complex<double> InterferenceField::calculateInterference(const SphericalCoo
             case QuantumSoundState::COLLAPSED:
                 quantum_factor = std::complex<double>(0.0, 1.0);
                 break;
+            default:
+                quantum_factor = std::complex<double>(1.0, 0.0);
+                break;
         }
         
         // Calculate field contribution
@@ -74,9 +77,9 @@ std::complex<double> InterferenceField::calculateInterference(const SphericalCoo
             return total_field * (1.0 + 0.5 * std::sin(2.0 * M_PI * 10.0 * time));
         case InterferenceFieldType::QUANTUM_ENTANGLED:
             return total_field * std::complex<double>(std::cos(M_PI / 6.0), std::sin(M_PI / 6.0));
+        default:
+            return total_field;
     }
-    
-    return total_field;
 }
 
 QuantumSoundField InterferenceField::quantumSuperposition(const std::vector<QuantumSoundField>& fields) const {
@@ -100,14 +103,13 @@ QuantumSoundField InterferenceField::quantumSuperposition(const std::vector<Quan
     total_phase /= static_cast<double>(field_count);
     total_frequency /= static_cast<double>(field_count);
     
-    // Create superposition state
+    // Create superposition field
     QuantumSoundField superposition;
     superposition.amplitude = total_amplitude;
     superposition.phase = total_phase;
     superposition.frequency = total_frequency;
     superposition.quantum_state = QuantumSoundState::SUPERPOSITION;
-    superposition.position = center_position_;
-    superposition.timestamp = std::chrono::high_resolution_clock::now();
+    superposition.position = center_;
     
     return superposition;
 }
@@ -116,19 +118,22 @@ void InterferenceField::updateQuantumState(double dt) {
     std::lock_guard<std::mutex> lock(field_mutex_);
     
     for (auto& field : source_fields_) {
-        // Simulate quantum decoherence
-        static std::random_device rd;
-        static std::mt19937 gen(rd());
-        static std::normal_distribution<double> noise(0.0, 0.01);
-        
-        // Add quantum noise
-        field.amplitude += std::complex<double>(noise(gen), noise(gen)) * dt;
-        
-        // Update quantum state based on time
-        if (field.quantum_state == QuantumSoundState::SUPERPOSITION) {
-            if (std::abs(field.amplitude.real()) > 0.1) {
-                field.quantum_state = QuantumSoundState::COHERENT;
-            }
+        // Simple quantum state evolution
+        switch (field.quantum_state) {
+            case QuantumSoundState::EXCITED:
+                // Decay to ground state
+                if (dt > 0.1) {
+                    field.quantum_state = QuantumSoundState::GROUND;
+                }
+                break;
+            case QuantumSoundState::SUPERPOSITION:
+                // Maintain superposition for a while
+                break;
+            case QuantumSoundState::ENTANGLED:
+                // Entangled states are stable
+                break;
+            default:
+                break;
         }
     }
 }
@@ -139,12 +144,7 @@ void InterferenceField::createQuantumEntanglement(size_t field1_idx, size_t fiel
     if (field1_idx < source_fields_.size() && field2_idx < source_fields_.size()) {
         source_fields_[field1_idx].quantum_state = QuantumSoundState::ENTANGLED;
         source_fields_[field2_idx].quantum_state = QuantumSoundState::ENTANGLED;
-        
-        // Create correlated amplitudes
-        std::complex<double> avg_amplitude = (source_fields_[field1_idx].amplitude + 
-                                            source_fields_[field2_idx].amplitude) * 0.5;
-        source_fields_[field1_idx].amplitude = avg_amplitude;
-        source_fields_[field2_idx].amplitude = avg_amplitude;
+        entangled_pairs_.emplace_back(field1_idx, field2_idx);
     }
 }
 
@@ -202,7 +202,7 @@ double DomeAcousticResonator::calculateReverbTime(double frequency) const {
 
 // QuantumAcousticProcessor implementation
 QuantumAcousticProcessor::QuantumAcousticProcessor(size_t max_fields)
-    : max_fields_(max_fields), processing_enabled_(true) {
+    : processing_enabled_(true) {
     processing_thread_ = std::thread(&QuantumAcousticProcessor::processingLoop, this);
 }
 
@@ -215,19 +215,12 @@ QuantumAcousticProcessor::~QuantumAcousticProcessor() {
 
 void QuantumAcousticProcessor::addField(const QuantumSoundField& field) {
     std::lock_guard<std::mutex> lock(fields_mutex_);
-    
-    if (quantum_fields_.size() < max_fields_) {
-        quantum_fields_.push_back(field);
-    } else {
-        // Replace oldest field
-        quantum_fields_.erase(quantum_fields_.begin());
-        quantum_fields_.push_back(field);
-    }
+    fields_.push_back(field);
 }
 
 std::vector<QuantumSoundField> QuantumAcousticProcessor::getProcessedFields() const {
     std::lock_guard<std::mutex> lock(fields_mutex_);
-    return quantum_fields_;
+    return fields_;
 }
 
 void QuantumAcousticProcessor::setProcessingEnabled(bool enabled) {
@@ -238,7 +231,7 @@ void QuantumAcousticProcessor::processingLoop() {
     while (processing_enabled_) {
         std::lock_guard<std::mutex> lock(fields_mutex_);
         
-        for (auto& field : quantum_fields_) {
+        for (auto& field : fields_) {
             // Apply quantum processing
             field.amplitude *= std::exp(std::complex<double>(0.0, field.phase));
             
@@ -258,43 +251,7 @@ void QuantumAcousticProcessor::processingLoop() {
     }
 }
 
-// ConsciousnessIntegration implementation
-ConsciousnessIntegration::ConsciousnessIntegration()
-    : consciousness_level_(0.0), integration_enabled_(true) {
-}
 
-void ConsciousnessIntegration::setConsciousnessLevel(double level) {
-    consciousness_level_ = std::clamp(level, 0.0, 1.0);
-}
-
-double ConsciousnessIntegration::getConsciousnessLevel() const {
-    return consciousness_level_;
-}
-
-void ConsciousnessIntegration::setIntegrationEnabled(bool enabled) {
-    integration_enabled_ = enabled;
-}
-
-QuantumSoundField ConsciousnessIntegration::applyConsciousnessModulation(const QuantumSoundField& field) const {
-    if (!integration_enabled_) {
-        return field;
-    }
-    
-    QuantumSoundField modulated_field = field;
-    
-    // Apply consciousness-based modulation
-    double consciousness_factor = 1.0 + consciousness_level_ * 0.5;
-    modulated_field.amplitude *= consciousness_factor;
-    
-    // Adjust quantum state based on consciousness
-    if (consciousness_level_ > 0.7) {
-        modulated_field.quantum_state = QuantumSoundState::COHERENT;
-    } else if (consciousness_level_ > 0.3) {
-        modulated_field.quantum_state = QuantumSoundState::SUPERPOSITION;
-    }
-    
-    return modulated_field;
-}
 
 // Global functions
 std::string getVersion() {
@@ -317,8 +274,18 @@ std::string getBuildInfo() {
     info += "Unknown";
 #endif
     
-    info += "\nCompiler: " + std::string(CMAKE_CXX_COMPILER_ID);
-    info += "\nC++ Standard: " + std::to_string(CMAKE_CXX_STANDARD);
+    info += "\nCompiler: ";
+#ifdef __clang__
+    info += "Clang";
+#elif defined(__GNUC__)
+    info += "GCC";
+#elif defined(_MSC_VER)
+    info += "MSVC";
+#else
+    info += "Unknown";
+#endif
+    
+    info += "\nC++ Standard: 17";
     
     return info;
 }

@@ -6,103 +6,48 @@
 
 namespace AnantaSound {
 
-// Режимы медитации
-enum class MeditationMode {
-    FOCUS,          // Фокус и концентрация
-    TRANSCENDENCE,  // Трансцендентность
-    HEALING,        // Исцеление
-    AWAKENING       // Пробуждение
+// Consciousness States
+enum class ConsciousnessState {
+    DISSOCIATED,    // Dissociated state
+    AWARE,          // Aware state
+    COHERENT        // Coherent state
 };
 
-// Интеграция сознания
+// Consciousness Integration System
 class ConsciousnessIntegration {
 private:
-    double consciousness_level_;
-    bool integration_enabled_;
+    double coherence_threshold_;
+    int integration_depth_;
+    ConsciousnessState consciousness_state_;
+    QuantumSoundField consciousness_field_;
+    std::chrono::high_resolution_clock::time_point last_update_;
 
 public:
     ConsciousnessIntegration();
     
-    // Настройка уровня сознания
-    void setConsciousnessLevel(double level);
-    double getConsciousnessLevel() const;
-    void setIntegrationEnabled(bool enabled);
+    // Consciousness State Management
+    void updateConsciousnessState(const std::vector<QuantumSoundField>& sound_fields);
+    ConsciousnessState getConsciousnessState() const;
     
-    // Применение модуляции сознания
-    QuantumSoundField applyConsciousnessModulation(const QuantumSoundField& field) const;
-};
-
-// Генератор полей сознания
-class ConsciousnessFieldGenerator {
-private:
-    double field_intensity_;
-    bool generation_enabled_;
-
-public:
-    explicit ConsciousnessFieldGenerator(double field_intensity = 1.0);
+    // Coherence Analysis
+    double calculateConsciousnessCoherence(const std::vector<QuantumSoundField>& sound_fields) const;
+    double getConsciousnessCoherence() const;
     
-    // Настройка параметров
-    void setFieldIntensity(double intensity);
-    double getFieldIntensity() const;
-    void setGenerationEnabled(bool enabled);
+    // Field Management
+    void updateConsciousnessField(const std::vector<QuantumSoundField>& sound_fields, double dt);
+    const QuantumSoundField& getConsciousnessField() const;
     
-    // Генерация полей сознания
-    std::vector<QuantumSoundField> generateConsciousnessFields(
-        const SphericalCoord& center_position, size_t field_count = 5) const;
-};
-
-// Анализатор когерентности сознания
-class ConsciousnessCoherenceAnalyzer {
-private:
-    double coherence_threshold_;
-    bool analysis_enabled_;
-
-public:
-    explicit ConsciousnessCoherenceAnalyzer(double coherence_threshold = 0.8);
-    
-    // Настройка параметров
+    // Configuration
     void setCoherenceThreshold(double threshold);
-    double getCoherenceThreshold() const;
-    void setAnalysisEnabled(bool enabled);
+    void setIntegrationDepth(int depth);
     
-    // Анализ когерентности
-    double analyzeCoherence(const std::vector<QuantumSoundField>& fields) const;
-    std::vector<QuantumSoundField> findCoherentFields(const std::vector<QuantumSoundField>& fields) const;
-
-private:
-    // Расчет когерентности между полями
-    double calculateFieldCoherence(const QuantumSoundField& field1, 
-                                 const QuantumSoundField& field2) const;
-};
-
-// Руководство по медитации сознания
-class ConsciousnessMeditationGuide {
-private:
-    MeditationMode meditation_mode_;
-    bool guidance_enabled_;
-
-public:
-    ConsciousnessMeditationGuide();
+    // Analysis
+    std::vector<double> getConsciousnessSpectrum() const;
     
-    // Настройка режима медитации
-    void setMeditationMode(MeditationMode mode);
-    MeditationMode getMeditationMode() const;
-    void setGuidanceEnabled(bool enabled);
-    
-    // Генерация полей для медитации
-    std::vector<QuantumSoundField> generateMeditationFields(
-        const SphericalCoord& position, double session_duration) const;
+    // Additional methods for compatibility
+    void updateConsciousnessLevel(double level);
+    void setConsciousnessParameter(const std::string& param, double value);
 
-private:
-    // Специализированные генераторы полей
-    std::vector<QuantumSoundField> generateFocusFields(
-        const SphericalCoord& position, double session_duration) const;
-    std::vector<QuantumSoundField> generateTranscendenceFields(
-        const SphericalCoord& position, double session_duration) const;
-    std::vector<QuantumSoundField> generateHealingFields(
-        const SphericalCoord& position, double session_duration) const;
-    std::vector<QuantumSoundField> generateAwakeningFields(
-        const SphericalCoord& position, double session_duration) const;
-};
+}; // class ConsciousnessIntegration
 
 } // namespace AnantaSound

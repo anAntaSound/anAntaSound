@@ -1,286 +1,230 @@
 #include "qrd_integration.hpp"
+#include <algorithm>
 #include <cmath>
 #include <random>
-#include <algorithm>
 
 namespace AnantaSound {
 
-// QRDIntegration implementation
-QRDIntegration::QRDIntegration(const SphericalCoord& qrd_position, double qrd_radius)
-    : qrd_position_(qrd_position), qrd_radius_(qrd_radius), integration_enabled_(true),
-      quantum_coupling_(1.0), resonance_tuning_(true) {
+QRDIntegration::QRDIntegration()
+    : qrd_active_(false)
+    , resonance_frequency_(432.0)
+    , resonance_amplitude_(1.0)
+    , quantum_entanglement_enabled_(true)
+    , last_resonance_update_(std::chrono::high_resolution_clock::now()) {
+    
+    // Initialize QRD field
+    qrd_field_.amplitude = std::complex<double>(resonance_amplitude_, 0.0);
+    qrd_field_.phase = 0.0;
+    qrd_field_.frequency = resonance_frequency_;
+    qrd_field_.quantum_state = QuantumSoundState::COHERENT;
+    qrd_field_.position = SphericalCoord(0.0, 0.0, 0.0, 0.0);
 }
 
-const SphericalCoord& QRDIntegration::getQRDPosition() const {
-    return qrd_position_;
+void QRDIntegration::activateQRD(double frequency, double amplitude) {
+    qrd_active_ = true;
+    resonance_frequency_ = frequency;
+    resonance_amplitude_ = amplitude;
+    
+    // Update QRD field
+    qrd_field_.frequency = frequency;
+    qrd_field_.amplitude = std::complex<double>(amplitude, 0.0);
+    qrd_field_.quantum_state = QuantumSoundState::COHERENT;
+    
+    last_resonance_update_ = std::chrono::high_resolution_clock::now();
 }
 
-void QRDIntegration::setQRDPosition(const SphericalCoord& position) {
-    qrd_position_ = position;
+void QRDIntegration::deactivateQRD() {
+    qrd_active_ = false;
+    qrd_field_.amplitude = std::complex<double>(0.0, 0.0);
+    qrd_field_.quantum_state = QuantumSoundState::GROUND;
 }
 
-double QRDIntegration::getQRDRadius() const {
-    return qrd_radius_;
+bool QRDIntegration::isQRDActive() const {
+    return qrd_active_;
 }
 
-void QRDIntegration::setQRDRadius(double radius) {
-    qrd_radius_ = std::clamp(radius, 0.1, 10.0);
+void QRDIntegration::updateQRDResonance(const std::vector<QuantumSoundField>& sound_fields) {
+    if (!qrd_active_) {
+        return;
+    }
+    
+    auto now = std::chrono::high_resolution_clock::now();
+    auto dt = std::chrono::duration<double>(now - last_resonance_update_).count();
+    
+    // Calculate resonance with existing sound fields
+    double resonance_strength = calculateResonanceStrength(sound_fields);
+    
+    // Update QRD field based on resonance
+    updateQRDField(resonance_strength, dt);
+    
+    last_resonance_update_ = now;
 }
 
-bool QRDIntegration::isIntegrationEnabled() const {
-    return integration_enabled_;
+double QRDIntegration::calculateResonanceStrength(const std::vector<QuantumSoundField>& sound_fields) const {
+    if (sound_fields.empty()) {
+        return 0.0;
+    }
+    
+    double total_resonance = 0.0;
+    
+    for (const auto& field : sound_fields) {
+        // Calculate frequency resonance
+        double freq_diff = std::abs(field.frequency - resonance_frequency_);
+        double freq_resonance = 1.0 / (1.0 + freq_diff / 50.0); // 50 Hz bandwidth
+        
+        // Calculate phase resonance
+        double phase_diff = std::abs(field.phase - qrd_field_.phase);
+        double phase_resonance = std::cos(phase_diff);
+        
+        // Calculate amplitude resonance
+        double amp_resonance = std::min(field.amplitude.real() / resonance_amplitude_, 1.0);
+        
+        // Combine resonance factors
+        double field_resonance = (freq_resonance + phase_resonance + amp_resonance) / 3.0;
+        total_resonance += field_resonance;
+    }
+    
+    return total_resonance / sound_fields.size();
 }
 
-void QRDIntegration::setIntegrationEnabled(bool enabled) {
-    integration_enabled_ = enabled;
+void QRDIntegration::updateQRDField(double resonance_strength, double dt) {
+    // Resonance feedback loop
+    double feedback_gain = 0.1;
+    double new_amplitude = resonance_amplitude_ * (1.0 + feedback_gain * resonance_strength);
+    
+    // Limit amplitude growth
+    new_amplitude = std::min(new_amplitude, resonance_amplitude_ * 2.0);
+    
+    // Update QRD field
+    qrd_field_.amplitude = std::complex<double>(new_amplitude, 0.0);
+    
+    // Phase evolution based on resonance
+    double phase_evolution = resonance_strength * 2.0 * M_PI * resonance_frequency_ * dt;
+    qrd_field_.phase += phase_evolution;
+    
+    // Normalize phase to [0, 2π]
+    qrd_field_.phase = std::fmod(qrd_field_.phase, 2.0 * M_PI);
+    if (qrd_field_.phase < 0.0) {
+        qrd_field_.phase += 2.0 * M_PI;
+    }
+    
+    // Update quantum state based on resonance
+    if (resonance_strength > 0.8) {
+        qrd_field_.quantum_state = QuantumSoundState::ENTANGLED;
+    } else if (resonance_strength > 0.5) {
+        qrd_field_.quantum_state = QuantumSoundState::COHERENT;
+    } else {
+        qrd_field_.quantum_state = QuantumSoundState::SUPERPOSITION;
+    }
 }
 
-double QRDIntegration::getQuantumCoupling() const {
-    return quantum_coupling_;
-}
-
-void QRDIntegration::setQuantumCoupling(double coupling) {
-    quantum_coupling_ = std::clamp(coupling, 0.0, 2.0);
-}
-
-bool QRDIntegration::isResonanceTuning() const {
-    return resonance_tuning_;
-}
-
-void QRDIntegration::setResonanceTuning(bool tuning) {
-    resonance_tuning_ = tuning;
-}
-
-std::vector<QuantumSoundField> QRDIntegration::generateQRDFields() const {
-    if (!integration_enabled_) {
+std::vector<QuantumSoundField> QRDIntegration::generateResonanceFields(const SphericalCoord& position, size_t count) const {
+    if (!qrd_active_) {
         return {};
     }
     
-    std::vector<QuantumSoundField> qrd_fields;
+    std::vector<QuantumSoundField> resonance_fields;
+    resonance_fields.reserve(count);
     
-    // Generate QRD-specific quantum fields
-    for (int i = 0; i < 12; ++i) { // 12 QRD wells
+    // Generate harmonically related resonance fields
+    for (size_t i = 0; i < count; ++i) {
         QuantumSoundField field;
         
-        // QRD well properties
-        double well_depth = 0.1 + (i % 4) * 0.1;
-        double well_frequency = 432.0 + i * 72.0; // Sacred geometry frequencies
+        // Harmonic frequency
+        double harmonic_freq = resonance_frequency_ * (i + 1);
         
-        // Quantum coupling effects
-        field.amplitude = std::complex<double>(
-            well_depth * quantum_coupling_,
-            well_depth * quantum_coupling_ * 0.5
-        );
+        // Harmonic amplitude (decreasing with harmonic number)
+        double harmonic_amp = resonance_amplitude_ / (i + 1);
         
-        field.frequency = well_frequency;
-        field.phase = i * M_PI / 6.0;
+        // Harmonic phase
+        double harmonic_phase = qrd_field_.phase * (i + 1);
         
-        // Quantum state based on coupling
-        if (quantum_coupling_ > 1.5) {
-            field.quantum_state = QuantumSoundState::ENTANGLED;
-        } else if (quantum_coupling_ > 0.8) {
-            field.quantum_state = QuantumSoundState::SUPERPOSITION;
-        } else {
-            field.quantum_state = QuantumSoundState::COHERENT;
-        }
-        
-        field.position = qrd_position_;
+        field.amplitude = std::complex<double>(harmonic_amp, 0.0);
+        field.phase = harmonic_phase;
+        field.frequency = harmonic_freq;
+        field.quantum_state = qrd_field_.quantum_state;
+        field.position = position;
         field.timestamp = std::chrono::high_resolution_clock::now();
         
-        qrd_fields.push_back(field);
+        resonance_fields.push_back(field);
     }
     
-    return qrd_fields;
+    return resonance_fields;
 }
 
-std::vector<QuantumSoundField> QRDIntegration::processThroughQRD(const std::vector<QuantumSoundField>& input_fields) const {
-    if (!integration_enabled_ || input_fields.empty()) {
-        return input_fields;
+void QRDIntegration::createQuantumEntanglement(const std::vector<QuantumSoundField>& fields) {
+    if (!quantum_entanglement_enabled_ || fields.size() < 2) {
+        return;
     }
     
-    std::vector<QuantumSoundField> processed_fields;
-    
-    for (const auto& input_field : input_fields) {
-        QuantumSoundField processed_field = input_field;
-        
-        // Apply QRD processing effects
-        if (resonance_tuning_) {
-            // Frequency tuning based on QRD resonance
-            double qrd_resonance = 432.0; // Base QRD frequency
-            double frequency_shift = (input_field.frequency - qrd_resonance) * 0.1;
-            processed_field.frequency += frequency_shift;
-        }
-        
-        // Quantum coupling enhancement
-        processed_field.amplitude *= quantum_coupling_;
-        
-        // Update quantum state
-        if (quantum_coupling_ > 1.0) {
-            if (processed_field.quantum_state == QuantumSoundState::COHERENT) {
-                processed_field.quantum_state = QuantumSoundState::SUPERPOSITION;
-            }
-        }
-        
-        processed_fields.push_back(processed_field);
-    }
-    
-    return processed_fields;
-}
-
-// QRDResonanceAnalyzer implementation
-QRDResonanceAnalyzer::QRDResonanceAnalyzer(double analysis_threshold)
-    : analysis_threshold_(analysis_threshold), analysis_enabled_(true) {
-}
-
-void QRDResonanceAnalyzer::setAnalysisThreshold(double threshold) {
-    analysis_threshold_ = std::clamp(threshold, 0.0, 1.0);
-}
-
-double QRDResonanceAnalyzer::getAnalysisThreshold() const {
-    return analysis_threshold_;
-}
-
-void QRDResonanceAnalyzer::setAnalysisEnabled(bool enabled) {
-    analysis_enabled_ = enabled;
-}
-
-std::vector<double> QRDResonanceAnalyzer::analyzeQRDResonances(const std::vector<QuantumSoundField>& fields) const {
-    if (!analysis_enabled_ || fields.empty()) {
-        return {};
-    }
-    
-    std::vector<double> resonant_frequencies;
-    
+    // Create entanglement between QRD field and sound fields
     for (const auto& field : fields) {
-        // Check if field resonates with QRD structure
-        if (isQRDResonant(field)) {
-            resonant_frequencies.push_back(field.frequency);
+        // Calculate entanglement strength based on resonance
+        double freq_diff = std::abs(field.frequency - resonance_frequency_);
+        double entanglement_strength = 1.0 / (1.0 + freq_diff / 100.0);
+        
+        if (entanglement_strength > 0.7) {
+            // Mark fields as entangled
+            entangled_fields_.push_back(field);
         }
     }
-    
-    // Remove duplicates and sort
-    std::sort(resonant_frequencies.begin(), resonant_frequencies.end());
-    resonant_frequencies.erase(std::unique(resonant_frequencies.begin(), resonant_frequencies.end()), 
-                              resonant_frequencies.end());
-    
-    return resonant_frequencies;
 }
 
-bool QRDResonanceAnalyzer::isQRDResonant(const QuantumSoundField& field) const {
-    // Check amplitude threshold
-    double amplitude_magnitude = std::abs(field.amplitude);
-    if (amplitude_magnitude < analysis_threshold_) {
-        return false;
+std::vector<QuantumSoundField> QRDIntegration::getEntangledFields() const {
+    return entangled_fields_;
+}
+
+const QuantumSoundField& QRDIntegration::getQRDField() const {
+    return qrd_field_;
+}
+
+double QRDIntegration::getResonanceFrequency() const {
+    return resonance_frequency_;
+}
+
+double QRDIntegration::getResonanceAmplitude() const {
+    return resonance_amplitude_;
+}
+
+void QRDIntegration::setResonanceFrequency(double frequency) {
+    resonance_frequency_ = frequency;
+    if (qrd_active_) {
+        qrd_field_.frequency = frequency;
+    }
+}
+
+void QRDIntegration::setResonanceAmplitude(double amplitude) {
+    resonance_amplitude_ = amplitude;
+    if (qrd_active_) {
+        qrd_field_.amplitude = std::complex<double>(amplitude, 0.0);
+    }
+}
+
+void QRDIntegration::setQuantumEntanglementEnabled(bool enabled) {
+    quantum_entanglement_enabled_ = enabled;
+    if (!enabled) {
+        entangled_fields_.clear();
+    }
+}
+
+std::vector<double> QRDIntegration::getResonanceSpectrum() const {
+    std::vector<double> spectrum;
+    
+    if (!qrd_active_) {
+        return spectrum;
     }
     
-    // Check for QRD-specific frequency patterns
-    std::vector<double> qrd_frequencies = {432, 504, 576, 648, 720, 792, 864, 936, 1008, 1080, 1152, 1224};
-    
-    for (double qrd_freq : qrd_frequencies) {
-        double frequency_tolerance = qrd_freq * 0.05; // 5% tolerance
-        if (std::abs(field.frequency - qrd_freq) < frequency_tolerance) {
-            return true;
-        }
+    // Generate resonance spectrum with harmonics
+    for (int i = 1; i <= 10; ++i) {
+        double harmonic_freq = resonance_frequency_ * i;
+        double harmonic_amp = resonance_amplitude_ / i;
+        
+        // Apply resonance envelope
+        double envelope = std::exp(-std::pow((harmonic_freq - resonance_frequency_) / 100.0, 2));
+        spectrum.push_back(harmonic_amp * envelope);
     }
     
-    return false;
-}
-
-// QRDQuantumEntangler implementation
-QRDQuantumEntangler::QRDQuantumEntangler(double entanglement_strength)
-    : entanglement_strength_(entanglement_strength), entanglement_enabled_(true) {
-}
-
-void QRDQuantumEntangler::setEntanglementStrength(double strength) {
-    entanglement_strength_ = std::clamp(strength, 0.0, 2.0);
-}
-
-double QRDQuantumEntangler::getEntanglementStrength() const {
-    return entanglement_strength_;
-}
-
-void QRDQuantumEntangler::setEntanglementEnabled(bool enabled) {
-    entanglement_enabled_ = enabled;
-}
-
-std::vector<QuantumSoundField> QRDQuantumEntangler::createEntangledFields(
-    const std::vector<QuantumSoundField>& input_fields) const {
-    
-    if (!entanglement_enabled_ || input_fields.size() < 2) {
-        return input_fields;
-    }
-    
-    std::vector<QuantumSoundField> entangled_fields = input_fields;
-    
-    // Create quantum entanglement between fields
-    for (size_t i = 0; i < entangled_fields.size() - 1; i += 2) {
-        if (i + 1 < entangled_fields.size()) {
-            // Entangle pairs of fields
-            entangled_fields[i].quantum_state = QuantumSoundState::ENTANGLED;
-            entangled_fields[i + 1].quantum_state = QuantumSoundState::ENTANGLED;
-            
-            // Correlate amplitudes
-            std::complex<double> avg_amplitude = (entangled_fields[i].amplitude + 
-                                                entangled_fields[i + 1].amplitude) * 0.5;
-            entangled_fields[i].amplitude = avg_amplitude * entanglement_strength_;
-            entangled_fields[i + 1].amplitude = avg_amplitude * entanglement_strength_;
-        }
-    }
-    
-    return entangled_fields;
-}
-
-// QRDConsciousnessBridge implementation
-QRDConsciousnessBridge::QRDConsciousnessBridge(double bridge_intensity)
-    : bridge_intensity_(bridge_intensity), bridge_enabled_(true) {
-}
-
-void QRDConsciousnessBridge::setBridgeIntensity(double intensity) {
-    bridge_intensity_ = std::clamp(intensity, 0.0, 5.0);
-}
-
-double QRDConsciousnessBridge::getBridgeIntensity() const {
-    return bridge_intensity_;
-}
-
-void QRDConsciousnessBridge::setBridgeEnabled(bool enabled) {
-    bridge_enabled_ = enabled;
-}
-
-std::vector<QuantumSoundField> QRDConsciousnessBridge::bridgeConsciousness(
-    const std::vector<QuantumSoundField>& qrd_fields,
-    const std::vector<QuantumSoundField>& consciousness_fields) const {
-    
-    if (!bridge_enabled_ || qrd_fields.empty() || consciousness_fields.empty()) {
-        return qrd_fields;
-    }
-    
-    std::vector<QuantumSoundField> bridged_fields;
-    
-    // Bridge QRD fields with consciousness fields
-    for (const auto& qrd_field : qrd_fields) {
-        for (const auto& consciousness_field : consciousness_fields) {
-            QuantumSoundField bridged_field = qrd_field;
-            
-            // Combine QRD and consciousness properties
-            bridged_field.amplitude = (qrd_field.amplitude + consciousness_field.amplitude) * 
-                                    bridge_intensity_ * 0.5;
-            
-            // Blend frequencies
-            bridged_field.frequency = (qrd_field.frequency + consciousness_field.frequency) * 0.5;
-            
-            // Enhanced quantum state
-            if (bridge_intensity_ > 2.0) {
-                bridged_field.quantum_state = QuantumSoundState::ENTANGLED;
-            } else if (bridge_intensity_ > 1.0) {
-                bridged_field.quantum_state = QuantumSoundState::SUPERPOSITION;
-            }
-            
-            bridged_fields.push_back(bridged_field);
-        }
-    }
-    
-    return bridged_fields;
+    return spectrum;
 }
 
 } // namespace AnantaSound
