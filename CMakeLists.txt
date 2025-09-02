@@ -100,6 +100,7 @@ if(BUILD_TESTS)
     enable_testing()
     
     add_executable(anantasound_tests
+        tests/test_main.cpp
         tests/test_anantasound_core.cpp
         tests/test_quantum_feedback.cpp
         tests/test_consciousness.cpp

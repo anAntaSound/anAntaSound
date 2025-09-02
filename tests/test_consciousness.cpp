@@ -97,19 +97,4 @@ void test_consciousness_state_transitions() {
     std::cout << "✓ Consciousness state transitions test passed" << std::endl;
 }
 
-int main() {
-    std::cout << "Running Consciousness Integration Tests..." << std::endl;
-    
-    try {
-        test_consciousness_integration();
-        test_consciousness_configuration();
-        test_consciousness_state_transitions();
-        
-        std::cout << "✓ All consciousness tests passed!" << std::endl;
-        return 0;
-        
-    } catch (const std::exception& e) {
-        std::cerr << "Test failed: " << e.what() << std::endl;
-        return 1;
-    }
-}
+

@@ -84,21 +84,4 @@ void test_anantasound_core() {
     std::cout << "✓ AnantaSoundCore test passed" << std::endl;
 }
 
-int main() {
-    std::cout << "Running anAntaSound Core Tests..." << std::endl;
-    std::cout << "Version: " << getVersion() << std::endl;
-    
-    try {
-        test_quantum_sound_field();
-        test_interference_field();
-        test_dome_acoustic_resonator();
-        test_anantasound_core();
-        
-        std::cout << "✓ All tests passed!" << std::endl;
-        return 0;
-        
-    } catch (const std::exception& e) {
-        std::cerr << "Test failed: " << e.what() << std::endl;
-        return 1;
-    }
-}
+

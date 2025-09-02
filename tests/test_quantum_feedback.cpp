@@ -62,19 +62,4 @@ void test_quantum_phase_synchronizer() {
     std::cout << "✓ QuantumPhaseSynchronizer test passed" << std::endl;
 }
 
-int main() {
-    std::cout << "Running Quantum Feedback Tests..." << std::endl;
-    
-    try {
-        test_quantum_feedback_system();
-        test_quantum_resonance_detector();
-        test_quantum_phase_synchronizer();
-        
-        std::cout << "✓ All quantum feedback tests passed!" << std::endl;
-        return 0;
-        
-    } catch (const std::exception& e) {
-        std::cerr << "Test failed: " << e.what() << std::endl;
-        return 1;
-    }
-}
+

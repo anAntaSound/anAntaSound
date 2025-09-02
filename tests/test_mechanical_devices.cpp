@@ -93,20 +93,4 @@ void test_mechanical_device_manager() {
     std::cout << "✓ MechanicalDeviceManager test passed" << std::endl;
 }
 
-int main() {
-    std::cout << "Running Mechanical Devices Tests..." << std::endl;
-    
-    try {
-        test_karmic_cluster();
-        test_spiritual_mercy();
-        test_quantum_resonance_device();
-        test_mechanical_device_manager();
-        
-        std::cout << "✓ All mechanical devices tests passed!" << std::endl;
-        return 0;
-        
-    } catch (const std::exception& e) {
-        std::cerr << "Test failed: " << e.what() << std::endl;
-        return 1;
-    }
-}
+
