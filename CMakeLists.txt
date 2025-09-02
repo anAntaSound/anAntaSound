@@ -103,6 +103,28 @@ if(BUILD_EXAMPLES)
         examples/samples_demo.cpp
     )
     target_link_libraries(samples_demo PRIVATE anantasound_core)
+    
+    add_executable(samples_demo_audio
+        examples/samples_demo_audio.cpp
+    )
+    target_link_libraries(samples_demo_audio PRIVATE anantasound_core)
+    
+    # Подключаем аудио библиотеки для macOS
+    target_include_directories(samples_demo_audio PRIVATE 
+        "/opt/homebrew/include"
+        "/opt/homebrew/opt/libsndfile/include"
+        "/opt/homebrew/opt/portaudio/include"
+    )
+    
+    target_link_libraries(samples_demo_audio PRIVATE 
+        "-framework CoreAudio"
+        "-framework AudioToolbox"
+        "-framework AudioUnit"
+        "-framework CoreFoundation"
+        "-L/opt/homebrew/lib"
+        "-lsndfile"
+        "-lportaudio"
+    )
 endif()
 
 # Тесты
