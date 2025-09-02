@@ -3,6 +3,8 @@
 #include <cmath>
 #include <iostream>
 #include <random>
+#include <chrono>
+#include <thread>
 
 namespace AnantaSound {
 
@@ -198,6 +200,184 @@ double DomeAcousticResonator::calculateReverbTime(double frequency) const {
     }
     
     return rt60;
+}
+
+// AnantaSoundCore implementation
+AnantaSoundCore::AnantaSoundCore(double radius, double height)
+    : dome_radius_(radius)
+    , dome_height_(height)
+    , quantum_uncertainty_(0.1)
+    , is_initialized_(false) {
+    
+    dome_resonator_ = std::make_unique<DomeAcousticResonator>(radius, height);
+}
+
+AnantaSoundCore::~AnantaSoundCore() {
+    shutdown();
+}
+
+bool AnantaSoundCore::initialize() {
+    if (is_initialized_) {
+        return true;
+    }
+    
+    try {
+        // Initialize dome resonator
+        if (dome_resonator_) {
+            // Set default material properties
+            std::map<double, double> properties;
+            properties[440.0] = 1.0; // Standard A note
+            properties[880.0] = 0.8; // A octave
+            dome_resonator_->setMaterialProperties(properties);
+        }
+        
+        is_initialized_ = true;
+        return true;
+        
+    } catch (const std::exception& e) {
+        std::cerr << "Failed to initialize AnantaSoundCore: " << e.what() << std::endl;
+        return false;
+    }
+}
+
+void AnantaSoundCore::shutdown() {
+    if (!is_initialized_) {
+        return;
+    }
+    
+    // Clear all fields
+    {
+        std::lock_guard<std::mutex> lock(core_mutex_);
+        interference_fields_.clear();
+        sound_fields_.clear();
+    }
+    
+    is_initialized_ = false;
+}
+
+void AnantaSoundCore::addInterferenceField(std::unique_ptr<InterferenceField> field) {
+    if (!is_initialized_) {
+        return;
+    }
+    
+    std::lock_guard<std::mutex> lock(core_mutex_);
+    interference_fields_.push_back(std::move(field));
+}
+
+void AnantaSoundCore::removeInterferenceField(size_t field_index) {
+    if (!is_initialized_) {
+        return;
+    }
+    
+    std::lock_guard<std::mutex> lock(core_mutex_);
+    if (field_index < interference_fields_.size()) {
+        interference_fields_.erase(interference_fields_.begin() + field_index);
+    }
+}
+
+QuantumSoundField AnantaSoundCore::createQuantumSoundField(double frequency, 
+                                                          const SphericalCoord& position,
+                                                          QuantumSoundState state) {
+    QuantumSoundField field;
+    field.amplitude = std::complex<double>(1.0, 0.0);
+    field.frequency = frequency;
+    field.phase = 0.0;
+    field.quantum_state = state;
+    field.position = position;
+    field.timestamp = std::chrono::high_resolution_clock::now();
+    
+    return field;
+}
+
+void AnantaSoundCore::processSoundField(const QuantumSoundField& input_field) {
+    if (!is_initialized_) {
+        return;
+    }
+    
+    std::lock_guard<std::mutex> lock(core_mutex_);
+    
+    // Store the field
+    sound_fields_[input_field.position] = input_field;
+    
+    // Apply quantum uncertainty
+    if (quantum_uncertainty_ > 0.0) {
+        static std::random_device rd;
+        static std::mt19937 gen(rd());
+        static std::normal_distribution<double> dist(0.0, quantum_uncertainty_);
+        
+        // Add quantum noise to amplitude
+        double noise = dist(gen);
+        sound_fields_[input_field.position].amplitude += std::complex<double>(noise, noise);
+    }
+}
+
+std::vector<QuantumSoundField> AnantaSoundCore::getOutputFields() const {
+    if (!is_initialized_) {
+        return {};
+    }
+    
+    std::lock_guard<std::mutex> lock(core_mutex_);
+    
+    std::vector<QuantumSoundField> output_fields;
+    output_fields.reserve(sound_fields_.size());
+    
+    for (const auto& [pos, field] : sound_fields_) {
+        output_fields.push_back(field);
+    }
+    
+    return output_fields;
+}
+
+void AnantaSoundCore::update(double dt) {
+    if (!is_initialized_) {
+        return;
+    }
+    
+    // Update interference fields
+    for (auto& field : interference_fields_) {
+        if (field) {
+            field->updateQuantumState(dt);
+        }
+    }
+    
+    // Update quantum effects
+    static double time_accumulator = 0.0;
+    time_accumulator += dt;
+    
+    if (time_accumulator >= 0.016) { // ~60 FPS
+        // Simulate quantum decoherence
+        for (auto& [pos, field] : sound_fields_) {
+            if (field.quantum_state == QuantumSoundState::SUPERPOSITION) {
+                static std::random_device rd;
+                static std::mt19937 gen(rd());
+                static std::uniform_real_distribution<double> dist(0.0, 1.0);
+                
+                if (dist(gen) < 0.05) { // 5% chance of decoherence
+                    field.quantum_state = QuantumSoundState::GROUND;
+                }
+            }
+        }
+        time_accumulator = 0.0;
+    }
+}
+
+AnantaSoundCore::SystemStatistics AnantaSoundCore::getStatistics() const {
+    SystemStatistics stats;
+    
+    if (!is_initialized_) {
+        return stats;
+    }
+    
+    std::lock_guard<std::mutex> lock(core_mutex_);
+    
+    stats.active_fields = sound_fields_.size();
+    stats.entangled_pairs = 0; // TODO: Implement entanglement tracking
+    stats.coherence_ratio = 0.0; // TODO: Implement coherence calculation
+    stats.energy_efficiency = 1.0; // TODO: Implement energy calculation
+    stats.qrd_connected = false; // TODO: Implement QRD connection status
+    stats.mechanical_devices_active = 0; // TODO: Implement device tracking
+    
+    return stats;
 }
 
 // QuantumAcousticProcessor implementation

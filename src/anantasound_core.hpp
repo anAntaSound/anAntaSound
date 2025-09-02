@@ -33,6 +33,15 @@ struct SphericalCoord {
     
     SphericalCoord(double radius = 0.0, double polar = 0.0, double azimuth = 0.0, double time = 0.0, double h = 0.0)
         : r(radius), theta(polar), phi(azimuth), t(time), height(h) {}
+    
+    // Оператор сравнения для использования в std::map
+    bool operator<(const SphericalCoord& other) const {
+        if (r != other.r) return r < other.r;
+        if (theta != other.theta) return theta < other.theta;
+        if (phi != other.phi) return phi < other.phi;
+        if (t != other.t) return t < other.t;
+        return height < other.height;
+    }
 };
 
 // Квантовое звуковое поле

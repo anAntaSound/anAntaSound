@@ -10,71 +10,91 @@ void test_consciousness_integration() {
     
     ConsciousnessIntegration consciousness;
     
-    consciousness.setConsciousnessLevel(0.8);
-    assert(std::abs(consciousness.getConsciousnessLevel() - 0.8) < 1e-6);
+    // Test initial state
+    assert(consciousness.getConsciousnessState() == ConsciousnessState::AWARE);
     
-    QuantumSoundField field;
-    field.amplitude = std::complex<double>(1.0, 0.0);
-    field.frequency = 432.0;
-    field.quantum_state = QuantumSoundState::SUPERPOSITION;
-    
-    auto modulated = consciousness.applyConsciousnessModulation(field);
-    assert(std::abs(modulated.amplitude) > std::abs(field.amplitude));
-    
-    std::cout << "✓ ConsciousnessIntegration test passed" << std::endl;
-}
-
-void test_consciousness_field_generator() {
-    std::cout << "Testing ConsciousnessFieldGenerator..." << std::endl;
-    
-    ConsciousnessFieldGenerator generator(1.5);
-    
-    SphericalCoord position{1.0, M_PI/4, M_PI/4, 1.0};
-    auto fields = generator.generateConsciousnessFields(position, 5);
-    
-    assert(fields.size() == 5);
-    
-    std::cout << "✓ ConsciousnessFieldGenerator test passed" << std::endl;
-}
-
-void test_consciousness_coherence_analyzer() {
-    std::cout << "Testing ConsciousnessCoherenceAnalyzer..." << std::endl;
-    
-    ConsciousnessCoherenceAnalyzer analyzer(0.7);
-    
-    std::vector<QuantumSoundField> fields;
+    // Create test sound fields
+    std::vector<QuantumSoundField> sound_fields;
     for (int i = 0; i < 3; ++i) {
         QuantumSoundField field;
         field.amplitude = std::complex<double>(1.0, 0.0);
         field.frequency = 432.0 + i * 10.0;
         field.phase = 0.0;
         field.quantum_state = QuantumSoundState::COHERENT;
-        fields.push_back(field);
+        sound_fields.push_back(field);
     }
     
-    double coherence = analyzer.analyzeCoherence(fields);
+    // Update consciousness state
+    consciousness.updateConsciousnessState(sound_fields);
+    
+    // Test coherence calculation
+    double coherence = consciousness.getConsciousnessCoherence();
     assert(coherence >= 0.0 && coherence <= 1.0);
     
-    auto coherent_fields = analyzer.findCoherentFields(fields);
-    assert(coherent_fields.size() == fields.size());
+    // Test consciousness field
+    const auto& consciousness_field = consciousness.getConsciousnessField();
+    assert(consciousness_field.frequency > 0.0);
     
-    std::cout << "✓ ConsciousnessCoherenceAnalyzer test passed" << std::endl;
+    // Test consciousness spectrum
+    auto spectrum = consciousness.getConsciousnessSpectrum();
+    assert(!spectrum.empty());
+    
+    std::cout << "✓ ConsciousnessIntegration test passed" << std::endl;
 }
 
-void test_consciousness_meditation_guide() {
-    std::cout << "Testing ConsciousnessMeditationGuide..." << std::endl;
+void test_consciousness_configuration() {
+    std::cout << "Testing ConsciousnessIntegration configuration..." << std::endl;
     
-    ConsciousnessMeditationGuide guide;
+    ConsciousnessIntegration consciousness;
     
-    guide.setMeditationMode(MeditationMode::HEALING);
-    assert(guide.getMeditationMode() == MeditationMode::HEALING);
+    // Test coherence threshold
+    consciousness.setCoherenceThreshold(0.8);
+    assert(std::abs(consciousness.getConsciousnessCoherence() - 0.8) < 1e-6);
     
-    SphericalCoord position{1.0, M_PI/4, M_PI/4, 1.0};
-    auto meditation_fields = guide.generateMeditationFields(position, 10.0);
+    // Test integration depth
+    consciousness.setIntegrationDepth(10);
     
-    assert(!meditation_fields.empty());
+    // Test spectrum generation with new depth
+    auto spectrum = consciousness.getConsciousnessSpectrum();
+    assert(spectrum.size() == 10);
     
-    std::cout << "✓ ConsciousnessMeditationGuide test passed" << std::endl;
+    std::cout << "✓ ConsciousnessIntegration configuration test passed" << std::endl;
+}
+
+void test_consciousness_state_transitions() {
+    std::cout << "Testing consciousness state transitions..." << std::endl;
+    
+    ConsciousnessIntegration consciousness;
+    
+    // Test with coherent fields (should lead to COHERENT state)
+    std::vector<QuantumSoundField> coherent_fields;
+    for (int i = 0; i < 5; ++i) {
+        QuantumSoundField field;
+        field.amplitude = std::complex<double>(1.0, 0.0);
+        field.frequency = 432.0;
+        field.phase = 0.0; // Same phase for coherence
+        field.quantum_state = QuantumSoundState::COHERENT;
+        coherent_fields.push_back(field);
+    }
+    
+    consciousness.updateConsciousnessState(coherent_fields);
+    assert(consciousness.getConsciousnessState() == ConsciousnessState::COHERENT);
+    
+    // Test with incoherent fields (should lead to DISSOCIATED state)
+    std::vector<QuantumSoundField> incoherent_fields;
+    for (int i = 0; i < 5; ++i) {
+        QuantumSoundField field;
+        field.amplitude = std::complex<double>(1.0, 0.0);
+        field.frequency = 432.0 + i * 100.0; // Different frequencies
+        field.phase = i * M_PI; // Different phases
+        field.quantum_state = QuantumSoundState::GROUND;
+        incoherent_fields.push_back(field);
+    }
+    
+    consciousness.updateConsciousnessState(incoherent_fields);
+    assert(consciousness.getConsciousnessState() == ConsciousnessState::DISSOCIATED);
+    
+    std::cout << "✓ Consciousness state transitions test passed" << std::endl;
 }
 
 int main() {
@@ -82,9 +102,8 @@ int main() {
     
     try {
         test_consciousness_integration();
-        test_consciousness_field_generator();
-        test_consciousness_coherence_analyzer();
-        test_consciousness_meditation_guide();
+        test_consciousness_configuration();
+        test_consciousness_state_transitions();
         
         std::cout << "✓ All consciousness tests passed!" << std::endl;
         return 0;
