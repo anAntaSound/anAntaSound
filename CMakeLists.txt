@@ -98,6 +98,11 @@ if(BUILD_EXAMPLES)
         )
         target_link_libraries(mechanical_devices_demo PRIVATE anantasound_core)
     endif()
+    
+    add_executable(samples_demo
+        examples/samples_demo.cpp
+    )
+    target_link_libraries(samples_demo PRIVATE anantasound_core)
 endif()
 
 # Тесты
