@@ -36,14 +36,13 @@ add_library(anantasound_core
     src/consciousness_integration.cpp
     src/mechanical_devices.cpp
     src/qrd_integration.cpp
-    src/audio_analyzer.cpp
 )
 
 # Настройка свойств библиотеки
 set_target_properties(anantasound_core PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}
-    PUBLIC_HEADER "src/anantasound_core.hpp;src/quantum_feedback_system.hpp;src/mechanical_devices.hpp;src/consciousness_integration.hpp;src/qrd_integration.hpp;src/audio_analyzer.hpp"
+    PUBLIC_HEADER "src/anantasound_core.hpp;src/quantum_feedback_system.hpp;src/mechanical_devices.hpp;src/consciousness_integration.hpp;src/qrd_integration.hpp"
 )
 
 # Подключение зависимостей
