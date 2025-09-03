@@ -36,13 +36,14 @@ add_library(anantasound_core
     src/consciousness_integration.cpp
     src/mechanical_devices.cpp
     src/qrd_integration.cpp
+    src/audio_analyzer.cpp
 )
 
 # Настройка свойств библиотеки
 set_target_properties(anantasound_core PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}
-    PUBLIC_HEADER "src/anantasound_core.hpp;src/quantum_feedback_system.hpp;src/mechanical_devices.hpp;src/consciousness_integration.hpp;src/qrd_integration.hpp"
+    PUBLIC_HEADER "src/anantasound_core.hpp;src/quantum_feedback_system.hpp;src/mechanical_devices.hpp;src/consciousness_integration.hpp;src/qrd_integration.hpp;src/audio_analyzer.hpp"
 )
 
 # Подключение зависимостей
@@ -109,6 +110,16 @@ if(BUILD_EXAMPLES)
     )
     target_link_libraries(samples_demo_audio PRIVATE anantasound_core)
     
+    add_executable(advanced_audio_demo
+        examples/advanced_audio_demo.cpp
+    )
+    target_link_libraries(advanced_audio_demo PRIVATE anantasound_core)
+    
+    add_executable(flac_utility
+        tools/flac_utility.cpp
+    )
+    target_link_libraries(flac_utility PRIVATE anantasound_core)
+    
     # Подключаем аудио библиотеки для macOS
     target_include_directories(samples_demo_audio PRIVATE 
         "/opt/homebrew/include"
@@ -116,7 +127,23 @@ if(BUILD_EXAMPLES)
         "/opt/homebrew/opt/portaudio/include"
     )
     
+    target_include_directories(advanced_audio_demo PRIVATE 
+        "/opt/homebrew/include"
+        "/opt/homebrew/opt/libsndfile/include"
+        "/opt/homebrew/opt/portaudio/include"
+    )
+    
     target_link_libraries(samples_demo_audio PRIVATE 
+        "-framework CoreAudio"
+        "-framework AudioToolbox"
+        "-framework AudioUnit"
+        "-framework CoreFoundation"
+        "-L/opt/homebrew/lib"
+        "-lsndfile"
+        "-lportaudio"
+    )
+    
+    target_link_libraries(advanced_audio_demo PRIVATE 
         "-framework CoreAudio"
         "-framework AudioToolbox"
         "-framework AudioUnit"
