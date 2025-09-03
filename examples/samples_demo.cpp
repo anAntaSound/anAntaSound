@@ -23,7 +23,7 @@ public:
     }
     
     void loadSampleFiles() {
-        std::string samples_dir = "../../samples";
+        std::string samples_dir = "../samples";
         if (fs::exists(samples_dir)) {
             for (const auto& entry : fs::directory_iterator(samples_dir)) {
                 if (entry.is_regular_file()) {
