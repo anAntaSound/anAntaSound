@@ -271,7 +271,7 @@ private:
     
 public:
     DualModeSamplesPlayer() {
-        samples_dir_ = "../../samples";
+        samples_dir_ = "../samples";
         loadSampleFiles();
     }
     
