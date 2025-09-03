@@ -110,6 +110,11 @@ if(BUILD_EXAMPLES)
     )
     target_link_libraries(samples_demo_audio PRIVATE anantasound_core)
     
+    add_executable(samples_demo_dual
+        examples/samples_demo_dual.cpp
+    )
+    target_link_libraries(samples_demo_dual PRIVATE anantasound_core)
+    
     add_executable(advanced_audio_demo
         examples/advanced_audio_demo.cpp
     )
@@ -127,6 +132,12 @@ if(BUILD_EXAMPLES)
         "/opt/homebrew/opt/portaudio/include"
     )
     
+    target_include_directories(samples_demo_dual PRIVATE 
+        "/opt/homebrew/include"
+        "/opt/homebrew/opt/libsndfile/include"
+        "/opt/homebrew/opt/portaudio/include"
+    )
+    
     target_include_directories(advanced_audio_demo PRIVATE 
         "/opt/homebrew/include"
         "/opt/homebrew/opt/libsndfile/include"
@@ -134,6 +145,16 @@ if(BUILD_EXAMPLES)
     )
     
     target_link_libraries(samples_demo_audio PRIVATE 
+        "-framework CoreAudio"
+        "-framework AudioToolbox"
+        "-framework AudioUnit"
+        "-framework CoreFoundation"
+        "-L/opt/homebrew/lib"
+        "-lsndfile"
+        "-lportaudio"
+    )
+    
+    target_link_libraries(samples_demo_dual PRIVATE 
         "-framework CoreAudio"
         "-framework AudioToolbox"
         "-framework AudioUnit"
