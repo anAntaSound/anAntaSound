@@ -32,6 +32,9 @@ find_package(Threads REQUIRED)
 # Основная библиотека
 add_library(anantasound_core
     src/anantasound_core.cpp
+    src/audio_analyzer.cpp
+    src/adaptive_audio_processor.cpp
+    src/breathing_analyzer.cpp
     src/quantum_feedback_system.cpp
     src/consciousness_integration.cpp
     src/mechanical_devices.cpp
@@ -42,7 +45,7 @@ add_library(anantasound_core
 set_target_properties(anantasound_core PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}
-    PUBLIC_HEADER "src/anantasound_core.hpp;src/quantum_feedback_system.hpp;src/mechanical_devices.hpp;src/consciousness_integration.hpp;src/qrd_integration.hpp"
+    PUBLIC_HEADER "src/anantasound_core.hpp;src/audio_analyzer.hpp;src/adaptive_audio_processor.hpp;src/breathing_analyzer.hpp;src/quantum_feedback_system.hpp;src/mechanical_devices.hpp;src/consciousness_integration.hpp;src/qrd_integration.hpp"
 )
 
 # Подключение зависимостей
@@ -118,6 +121,21 @@ if(BUILD_EXAMPLES)
         examples/advanced_audio_demo.cpp
     )
     target_link_libraries(advanced_audio_demo PRIVATE anantasound_core)
+    
+    add_executable(adaptive_audio_demo
+        examples/adaptive_audio_demo.cpp
+    )
+    target_link_libraries(adaptive_audio_demo PRIVATE anantasound_core)
+    
+    add_executable(breathing_analysis_demo
+        examples/breathing_analysis_demo.cpp
+    )
+    target_link_libraries(breathing_analysis_demo PRIVATE anantasound_core)
+    
+    add_executable(comprehensive_demo
+        examples/comprehensive_demo.cpp
+    )
+    target_link_libraries(comprehensive_demo PRIVATE anantasound_core)
     
     add_executable(flac_utility
         tools/flac_utility.cpp
